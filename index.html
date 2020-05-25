@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Webgl</title>
+	<style>
+		body {
+			background: #303960;
+			padding: 50px 150px;
+		}
+		header {
+			text-align: center;
+			color: #fff;
+		}
+		main {
+			display: flex;
+		}
+		nav {
+			width: 15%;
+			background: #e5e5e5;
+		}
+		section {
+			background: #fff;
+			width: 100%;
+		}
+		nav, section {
+			padding: 25px;
+		}
+		.field {
+			margin-bottom: 25px;
+		}
+	</style>
+</head>
+<body>
+	<header>
+		<h1>WebGL Rotsprite</h1>
+	</header>
+	<main>
+		<nav>
+			<div class="field">
+				<label for="angle">Angle in degrees</label>
+				<input type="text" id="angle" value="45">
+			</div>
+			<div class="field">
+				<input type="file" id="image-file">
+			</div>
+			<div class="field">
+				<button id="download">Download the result!</button>
+			</div>
+			<div class="field">
+				<div class="time">It took: <span id="timespan"></span> ms</div>
+			</div>
+		</nav>
+		<section>
+			<canvas id="webgl-canvas"></canvas>
+		</section>
+	</main>
+</body>
+<script src="texture.js"></script>
+</html>

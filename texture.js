@@ -1,3 +1,6 @@
+// let canvas = new OffscreenCanvas(1, 1);
+// let canvas = document.getElementById('webgl-canvas').transferControlToOffscreen();
+// let canvas = document.createElement('canvas');
 let canvas = document.getElementById('webgl-canvas');
 
 let vshader = `
@@ -5,12 +8,11 @@ let vshader = `
 	attribute vec2 texCoord;
 
 	uniform mediump int isUpscale; // acts like a boolean
-	uniform vec2 resolution;
+	uniform mediump vec2 resolution;
 	uniform vec2 translation;
 	uniform mat4 scale;
 	uniform mat4 rotation;
 
-	varying vec2 v_resolution;
 	varying vec2 v_texCoord;
 	void main() {
 		if (isUpscale == 0) {
@@ -23,50 +25,48 @@ let vshader = `
 		} else {
 			gl_Position = position;
 		};
-		v_resolution = resolution;
   		v_texCoord = texCoord;
 	}
 `
 let fshader = `
     precision mediump float;
 
-    uniform sampler2D sampler0;
-    uniform sampler2D sampler1;
+    uniform sampler2D sampler;
 	uniform int isUpscale;
+    uniform vec2 resolution;
 
     varying vec2 v_texCoord;
-    varying vec2 v_resolution;
     
     void main() {
-	    vec4 P = texture2D(sampler0, v_texCoord);
+	    vec4 P = texture2D(sampler, v_texCoord);
     	if (isUpscale > 0) {
     		// EPX Scale
 	    	vec4 A; vec4 B; vec4 C; vec4 D;
 	    	vec4 color = P;
-	    	float pixw = 1.0 / v_resolution.x;
-	    	float pixh = 1.0 / v_resolution.y;
+	    	float pixw = 1.0 / resolution.x;
+	    	float pixh = 1.0 / resolution.y;
 
 	    	if (gl_FragCoord.y > 1.0) {
 	    		vec2 newTexCoord = vec2(v_texCoord.x, v_texCoord.y - (2.0*pixh));
-	    		A = texture2D(sampler1, newTexCoord);
+	    		A = texture2D(sampler, newTexCoord);
 	    	} else {
 				A = P;
 	    	};
-	    	if (gl_FragCoord.x < (v_resolution.x-2.0)) {
+	    	if (gl_FragCoord.x < (resolution.x-2.0)) {
 	    		vec2 newTexCoord = vec2(v_texCoord.x + (2.0*pixw), v_texCoord.y);
-	    		B = texture2D(sampler1, newTexCoord);
+	    		B = texture2D(sampler, newTexCoord);
 	    	} else {
 				B = P;
 	    	};
 	    	if (gl_FragCoord.x > 1.0) {
 	    		vec2 newTexCoord = vec2(v_texCoord.x - (2.0*pixw), v_texCoord.y);
-	    		C = texture2D(sampler1, newTexCoord);
+	    		C = texture2D(sampler, newTexCoord);
 	    	} else {
 				C = P;
 	    	};
-	    	if (gl_FragCoord.y < (v_resolution.y-2.0)) {
+	    	if (gl_FragCoord.y < (resolution.y-2.0)) {
 	    		vec2 newTexCoord = vec2(v_texCoord.x, v_texCoord.y + (2.0*pixh));
-	    		D = texture2D(sampler1, newTexCoord);
+	    		D = texture2D(sampler, newTexCoord);
 	    	} else {
 				D = P;
 	    	};
@@ -99,53 +99,43 @@ let fshader = `
     		gl_FragColor = P;
     	}
     }
-`
-window.onload = function() {
-	let input = document.getElementById("image-file");
-    input.addEventListener('change', rotsprite, false);
-}
+`;
+let gl = canvas.getContext('webgl', {antialias: false});
+let program = compile(gl, vshader, fshader);
+
+// Locations
+let resolution = gl.getUniformLocation(program, 'resolution')
+let translation = gl.getUniformLocation(program, 'translation')
+let scale = gl.getUniformLocation(program, 'scale')
+let rotation = gl.getUniformLocation(program, 'rotation');
+let isUpscale = gl.getUniformLocation(program, 'isUpscale');
+let position = gl.getAttribLocation(program, 'position');
+let texCoord = gl.getAttribLocation(program, 'texCoord');
+let sampler = gl.getUniformLocation(program, 'sampler');
+
+let image = new Image();
+let SCALE = 8;
 
 function rotsprite(e) {
 	let url = URL.createObjectURL(e.target.files[0]);
 	let filename = e.target.files[0].name;
 
-    let image = new Image();
     image.onload = function(){
 		let t0 = performance.now();
 		let imageData = image;
-		let verticesTexCoords = new Float32Array([
-		  -1, 1,  0.0, 1.0,
-		  -1, -1, 0.0, 0.0,
-		  1,  1,  1.0, 1.0,
-		  1,  -1, 1.0, 0.0,
-		]);
-		const n = 4;
-		const FSIZE = verticesTexCoords.BYTES_PER_ELEMENT;
-
-		let gl = canvas.getContext('webgl', {antialias: false});
-		let program = compile(gl, vshader, fshader);
-
-		// Locations
-		let resolution = gl.getUniformLocation(program, 'resolution')
-		let translation = gl.getUniformLocation(program, 'translation')
-		let scale = gl.getUniformLocation(program, 'scale')
-		let rotation = gl.getUniformLocation(program, 'rotation');
-		let isUpscale = gl.getUniformLocation(program, 'isUpscale');
-		let position = gl.getAttribLocation(program, 'position');
-		let texCoord = gl.getAttribLocation(program, 'texCoord');
 		
-		// Lookup the sampler locations.
-		let sampler0 = gl.getUniformLocation(program, 'sampler0');
-		let sampler1 = gl.getUniformLocation(program, 'sampler1');
-
-		// Array of textures
-		let textures = [gl.createTexture(), gl.createTexture()];
-
-		// Set which texture units to render with.
-		gl.uniform1i(sampler0, 0);
-		gl.uniform1i(sampler1, 1);
+		// Enable EPX Scale
+		gl.uniform1i(isUpscale, 1);
 
 		// Create the buffer object
+		let verticesTexCoords = new Float32Array([
+			  -1, 1,  0.0, 1.0,
+			  -1, -1, 0.0, 0.0, 
+			  1,  1,  1.0, 1.0,
+			  1,  -1, 1.0, 0.0,
+			]);
+		const n = 4;
+		const FSIZE = verticesTexCoords.BYTES_PER_ELEMENT;
 		let vertexTexCoordBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexCoordBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, verticesTexCoords, gl.STATIC_DRAW);
@@ -157,58 +147,47 @@ function rotsprite(e) {
 		// Use every 3rd and 4th float for texCoord
 		gl.vertexAttribPointer(texCoord, 2, gl.FLOAT, false, FSIZE * 4, FSIZE * 2);
 		gl.enableVertexAttribArray(texCoord);
+		
+		// Texture
+		let texture = gl.createTexture();
+ 		
+ 		// Reset flip
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
+		
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		
+		// Stretch/wrap options
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-		// Enable EPX Scale
-		gl.uniform1i(isUpscale, 1);
+		// Pass texture 0 to the sampler
+		gl.uniform1i(sampler, 0);
 
-		// Scale
-		const SCALE = 3;
 		const natW = this.naturalWidth;
 		const natH = this.naturalHeight;
 		let currW;
 		let currH;
-
-		// Use 2 textures
-		for (let i = 1; i <= SCALE; i++) {
-			currW = natW*(2**i);
-			currH = natH*(2**i);
-
-			canvas.width = currW;
-			canvas.height = currH;
-
-			gl.viewport(0, 0, currW, currH);
+		
+		for (let i = 2; i <= SCALE; i *= 2) {
+			// Uploading the image
+			if (i==2)
+				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imageData);
+			else
+				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, gl.canvas);
+			
+			currW = natW*i;
+			currH = natH*i;
 
 			gl.uniform2f(resolution, currW, currH)
 
-			// Flip the image's y axis
-			gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+			gl.canvas.width = currW;
+			gl.canvas.height = currH;
+			gl.viewport(0, 0, currW, currH);
 
-			textures.forEach((texture) => {
-				// Enable texture
-				gl.bindTexture(gl.TEXTURE_2D, texture);
-				// Uploading the image
-				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imageData);
-
-				// Stretch/wrap options
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-			});
-
-			// Set each texture unit to use a particular texture.
-			gl.activeTexture(gl.TEXTURE0);
-			gl.bindTexture(gl.TEXTURE_2D, textures[0]);
-
-			gl.activeTexture(gl.TEXTURE1);
-			gl.bindTexture(gl.TEXTURE_2D, textures[1]);
-			
 			gl.drawArrays(gl.TRIANGLE_STRIP, 0, n);
-
-			// Save current images to imageData
-			let pixels = new Uint8Array(currH*currW*4);
-			gl.readPixels(0, 0, currW, currH, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-			imageData = new ImageData(new Uint8ClampedArray(pixels), currW, currH);
 		}
 
 		let verticesTexCoordsInPixels = new Float32Array([
@@ -227,28 +206,24 @@ function rotsprite(e) {
 		gl.vertexAttribPointer(position, 2, gl.FLOAT, false, FSIZE * 4, 0);
 		gl.enableVertexAttribArray(position);
 
-		// Enable texture 0
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imageData);
-
-		// Stretch/wrap options
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		// Flip the image's y axis if scale == 4
+		if (SCALE==4)
+			gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+		// Upload image
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, gl.canvas);
 
 		// Time to rotate
 		gl.uniform1i(isUpscale, 0)
 		
-		const angleInput = document.getElementById('angle').value;
-		const angle = Number(angleInput);
-		const cosB = Math.cos(angle * Math.PI / 180);
-		const sinB = Math.sin(angle * Math.PI / 180);
+		const angle = Number(document.getElementById('angle').value);
+		const cosA = Math.cos(angle * Math.PI / 180);
+		const sinA = Math.sin(angle * Math.PI / 180);
 
-		const rotCornerX = Math.round(currW/2 * cosB + currH/2 * sinB);
-	    const rotCornerY = Math.round(currH/2 * cosB - currW/2 * sinB);
+		const rotCornerX = Math.round(currW/2 * cosA + currH/2 * sinA);
+	    const rotCornerY = Math.round(currH/2 * cosA - currW/2 * sinA);
 
-	    const rotCorner2X = Math.round(-currW/2 * cosB + currH/2 * sinB);
-	    const rotCorner2Y = Math.round(currH/2 * cosB - (-currW/2) * sinB);
+	    const rotCorner2X = Math.round(-currW/2 * cosA + currH/2 * sinA);
+	    const rotCorner2Y = Math.round(currH/2 * cosA - (-currW/2) * sinA);
 
 	    const maxPosX = Math.max(Math.abs(rotCornerX), Math.abs(rotCorner2X));
 	    const maxPosY = Math.max(Math.abs(rotCornerY), Math.abs(rotCorner2Y));
@@ -258,44 +233,54 @@ function rotsprite(e) {
 
 		// Rotate matrix
 		let r_matrix = new Float32Array([
-			cosB,  -sinB, 0.0, 0.0,
-			sinB, cosB, 0.0, 0.0,
+			cosA,  -sinA, 0.0, 0.0,
+			sinA, cosA, 0.0, 0.0,
 			0.0,   0.0,  1.0, 0.0,
 			0.0,   0.0,  0.0, 1.0
 			]);
 		gl.uniformMatrix4fv(rotation, false, r_matrix);
 
 		// Translation vector
-		const translateX = (currW/2 - rotW/2/8 - natW/2)/(natW/2);
-		const translateY = (currH/2 - rotH/2/8 - natH/2)/(natH/2);
-		gl.uniform2f(translation, -translateX, -translateY);
-		
+		const translateX = -(currW - rotW/SCALE - natW)/(natW);
+		const translateY = -(currH - rotH/SCALE - natH)/(natH);
+		gl.uniform2f(translation, translateX, translateY);
+
 		// Scale matrix
-		const S = .125;
+		const S = 1/SCALE;
 		const s_matrix = new Float32Array([
 		  S,   0.0, 0.0, 0.0,
 		  0.0, S,   0.0, 0.0,
-		  0.0, 0.0, S,   0.0,
+		  0.0, 0.0, 1.0, 0.0,
 		  0.0, 0.0, 0.0, 1.0
 		]);
 		gl.uniformMatrix4fv(scale, false, s_matrix);
-
-		canvas.width = Math.round(rotW/8);
-		canvas.height = Math.round(rotH/8);
-
-		// gl.clearColor(0, 0, 0, 0.0);
-		// gl.clear(gl.COLOR_BUFFER_BIT);
+		
+		gl.canvas.width = Math.round(rotW/SCALE);
+		gl.canvas.height = Math.round(rotH/SCALE);
 
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0, n);
 		
 		document.getElementById('timespan').textContent = Math.floor(performance.now() - t0);
 
 		// export image data
-		globalDataURL = canvas.toDataURL();
+		globalDataURL = gl.canvas.toDataURL();
 		globalFileName = e.target.files[0].name;
 		
 	};
 	image.src = url;
+}
+
+window.onload = function() {
+	let input = document.getElementById("image-file");
+    input.addEventListener('change', rotsprite, false);
+    let radios = document.querySelectorAll("input[type='radio']");
+    for (let i = 0; i < radios.length; i++) {
+    	if (radios[i].value == SCALE)
+    		radios[i].checked = true;
+	    radios[i].addEventListener('change', function() {
+	        SCALE = this.value;
+	    });
+	}
 }
 
 function compile(gl, vshader, fshader) {
@@ -320,9 +305,9 @@ function compile(gl, vshader, fshader) {
 	return program;
 }
 
-function downloadImage(dataURL, filename) {
+function downloadImage(dataURL, filename, SCALE) {
 	let link = document.createElement("a");
-	link.download = `webgl-rot-${filename}`;
+	link.download = `webgl-rot-x${SCALE}-${filename}`;
 	link.href = dataURL;
 	document.body.appendChild(link);
 	link.click();
@@ -331,5 +316,5 @@ function downloadImage(dataURL, filename) {
 }
 
 document.getElementById('download').addEventListener('click', () => {
-	downloadImage(globalDataURL, globalFileName);
+	downloadImage(globalDataURL, globalFileName, SCALE);
 })

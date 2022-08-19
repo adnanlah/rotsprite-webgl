@@ -1,0 +1,12 @@
+name: Vite
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Running deploy.sh
+        run: sh ./deploy.sh

@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+:root {
+  font-family: 'Inter', sans-serif;
+  --main-color: #f36c80;
+  --light-color: #eeeeee;
+  --dark-color: #260e12;
+  --v-dark-color: #0b0405;
+  color-scheme: dark light;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  min-width: 820px;
+  min-height: 100vh;
+  background-color: var(--light-color);
+}
+
+a {
+  color: var(--main-color);
+}
+
+input[type='file']::file-selector-button,
+button {
+  padding: 0.33rem 0.75rem;
+  background-color: var(--main-color);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+button:active {
+  padding: 0.4rem 0.75rem 0.26rem;
+}
+
+input[type='range'] {
+  -webkit-appearance: none;
+  background: #efefef;
+  border: 1px solid #d1cfcf;
+  border-radius: 5px;
+  height: 6px;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  background: var(--main-color);
+  box-shadow: 0 0 2px 0 #555;
+  transition: background 0.3s ease-in-out;
+}

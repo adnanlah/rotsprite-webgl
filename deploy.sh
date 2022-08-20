@@ -10,11 +10,11 @@ npm run build
 cd dist
 
 git init
-git checkout -b main
+git checkout -b master
 git add -A
 git commit -m 'deploy'
 
 # if you are deploying to https://<USERNAME>.github.io/<REPO>
-git push -f https://github.com/adnanlah/rotsprite-webgl.git main:gh-pages
+git push -f https://github.com/adnanlah/rotsprite-webgl.git master:gh-pages
 
 cd -

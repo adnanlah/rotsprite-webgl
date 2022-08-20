@@ -18,6 +18,7 @@ git config --global user.email "lahadn@gmail.com"
 git config --global user.name "Adnan Lahrech"
 
 # git config --global url."git@github.com:".insteadOf "https://github.com/"
+git remote set-url origin git@github.com:adnanlah/rotsprite-webgl.git
 git push -f https://github.com/adnanlah/rotsprite-webgl.git master:gh-pages
 # git push -f git@github.com:adnanlah/rotsprite-webgl.git master:gh-pages
 

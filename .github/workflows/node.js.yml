@@ -8,15 +8,15 @@ jobs:
   Buildndeploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Clone repo
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       - uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.vite }}
           name: id_rsa
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
-      - name: Clone repo
-        uses: actions/checkout@v2
-        with:
-          persist-credentials: false
       - name: Reconfigure git to use HTTP authentication
         run: >
           git config --global url."https://github.com/".insteadOf

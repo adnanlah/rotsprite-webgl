@@ -26,8 +26,8 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 16.x
-      # - name: Install dependencies
-      #   run: npm install
+      - name: Install dependencies
+        run: npm install
       - name: setup git config
         run: |
           git config --global user.email "lahadn@gmail.com"

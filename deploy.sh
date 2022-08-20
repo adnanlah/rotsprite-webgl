@@ -10,9 +10,12 @@ npm run build
 cd dist
 
 git init
-git checkout -b master
+git checkout -b main
 git add -A
 git commit -m 'deploy'
+
+# git config --global user.email "lahadn@gmail.com"
+# git config --global user.name "Adnan Lahrech"
 
 # if you are deploying to https://<USERNAME>.github.io/<REPO>
 # git config --global url."git@github.com:".insteadOf "https://github.com/"

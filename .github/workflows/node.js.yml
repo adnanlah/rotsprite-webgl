@@ -2,11 +2,17 @@ name: Vite
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ['master']
 
 jobs:
   Test:
     runs-on: ubuntu-latest
     steps:
+      - name: Clone repo
+        uses: actions/checkout@v2
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
       - name: Running deploy.sh
-        run: bash deploy.sh
+        run: bash ./deploy.sh

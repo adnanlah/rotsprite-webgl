@@ -10,6 +10,9 @@ jobs:
     steps:
       - name: Clone repo
         uses: actions/checkout@v2
+        with:
+          submodules: true
+          token: ${{ secrets.vite }
       # - name: Setup SSH Keys and known_hosts
       #   env:
       #     SSH_AUTH_SOCK: /tmp/ssh_agent.sock

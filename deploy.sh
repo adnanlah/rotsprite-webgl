@@ -14,12 +14,11 @@ git checkout -b main
 git add -A
 git commit -m 'deploy'
 
-# git config --global user.email "lahadn@gmail.com"
-# git config --global user.name "Adnan Lahrech"
+git config --global user.email "lahadn@gmail.com"
+git config --global user.name "Adnan Lahrech"
 
-# if you are deploying to https://<USERNAME>.github.io/<REPO>
 # git config --global url."git@github.com:".insteadOf "https://github.com/"
-# git push -f https://github.com/adnanlah/rotsprite-webgl.git master:gh-pages
-git push -f git@github.com:adnanlah/rotsprite-webgl.git main:gh-pages
+git push -f https://github.com/adnanlah/rotsprite-webgl.git main:gh-pages
+# git push -f git@github.com:adnanlah/rotsprite-webgl.git main:gh-pages
 
 cd -

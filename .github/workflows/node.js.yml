@@ -5,7 +5,7 @@ on:
     branches: ['master']
 
 jobs:
-  Build and deploy:
+  Buildndeploy:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repo

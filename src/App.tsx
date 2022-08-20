@@ -36,7 +36,7 @@ function App() {
         </form>
         <div>
           {errorMessages?.map(errorMessage => (
-            <p className="error-message">⚠ {errorMessage}</p>
+            <div className="error-message">⚠ {errorMessage}</div>
           ))}
         </div>
         <div className="tools">

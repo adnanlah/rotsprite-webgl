@@ -16,6 +16,7 @@ git commit -m 'deploy'
 
 # if you are deploying to https://<USERNAME>.github.io/<REPO>
 # git config --global url."git@github.com:".insteadOf "https://github.com/"
-git push -f https://github.com/adnanlah/rotsprite-webgl.git master:gh-pages
+# git push -f https://github.com/adnanlah/rotsprite-webgl.git master:gh-pages
+git push -f git@github.com:adnanlah/rotsprite-webgl.git main:gh-pages
 
 cd -

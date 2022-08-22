@@ -1,12 +1,14 @@
 import {ReactNode} from 'react'
 
-interface ButtonProps {
+interface MyButtonProps {
   onClick(event: React.MouseEvent<HTMLButtonElement>): void
   disabled: boolean
   children: ReactNode
 }
 
-function Button({children, onClick, disabled}: ButtonProps) {
+export const MyButton: React.FunctionComponent<
+  React.ButtonHTMLAttributes<HTMLButtonElement> & MyButtonProps
+> = ({children, onClick, disabled}) => {
   return (
     <button className="btn-icn" onClick={onClick} disabled={disabled}>
       <div className="icon">
@@ -27,5 +29,3 @@ function Button({children, onClick, disabled}: ButtonProps) {
     </button>
   )
 }
-
-export default Button

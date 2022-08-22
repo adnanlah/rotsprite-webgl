@@ -1,7 +1,10 @@
 import {useDebouncedValue} from '@mantine/hooks'
 import {createRef, useEffect, useMemo, useState} from 'react'
-import Button from './Button'
-import Canvas from './Canvas'
+import {useSnackbar} from '../../hooks/useSnackbar'
+import {MyButton} from '../Elements/MyButton'
+import {MyCanvas} from '../Elements/MyCanvas'
+import {Snackbar} from '../Snackbar'
+import styles from './RotspriteTool.module.css'
 
 interface RotspriteToolProps {
   imageUrl?: string
@@ -15,7 +18,7 @@ interface RotspriteToolProps {
   ) => Promise<string>
 }
 
-function RotspriteTool({
+export function RotspriteTool({
   imageUrl,
   fileName,
   title,
@@ -35,6 +38,8 @@ function RotspriteTool({
   }>({imageUrl: '', imageDataBase64: '', rotationDeg: '0'})
 
   const rotationDegInt = parseInt(rotationDeg)
+
+  const {isActive, message, openSnackBar} = useSnackbar()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useMemo(() => setRotationDeg('0'), [imageUrl])
@@ -62,7 +67,9 @@ function RotspriteTool({
           })
           setProcessing(false)
         } catch (err: any) {
+          console.log('error processing, opening a snackbar now')
           setProcessing(false)
+          openSnackBar(`${err.message}`)
           errorHandler(err.message)
         }
       }
@@ -75,7 +82,8 @@ function RotspriteTool({
   }
 
   return (
-    <section className="tool">
+    <section className={styles.tool}>
+      <Snackbar isActive={isActive} message={message} />
       <div>
         <h4>{title}</h4>
         <div>
@@ -94,17 +102,22 @@ function RotspriteTool({
           </div>
         </div>
       </div>
-      <div className={`canvasWrapper ${!globalUrl && 'placeholder'}`}>
+      {/* <div className={`canvasWrapper ${!globalUrl && 'placeholder'}`}> */}
+      <div
+        className={`${styles.canvasWrapper} ${
+          !globalUrl && styles.placeholder
+        }`}
+      >
         {processing && (
-          <div className="spinWrapper">
-            <div className="spinnerSquare"></div>
+          <div className={styles.spinWrapper}>
+            <div className={styles.spinnerSquare}></div>
           </div>
         )}
-        <Canvas ref={canvasRef} />
+        <MyCanvas ref={canvasRef} />
       </div>
-      <Button onClick={downloadImage} disabled={!!(!imageUrl || processing)}>
+      <MyButton onClick={downloadImage} disabled={!!(!imageUrl || processing)}>
         Download
-      </Button>
+      </MyButton>
       <a
         ref={linkRef}
         href={globalUrl}
@@ -116,5 +129,3 @@ function RotspriteTool({
     </section>
   )
 }
-
-export default RotspriteTool

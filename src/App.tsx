@@ -1,13 +1,13 @@
-import {useState} from 'react'
 import './App.css'
-import RotspriteTool from './components/RotspriteTool'
+import {useState} from 'react'
+import {RotspriteTool} from './components/RotspriteTool'
 import jsAlgorithm from './utils/RotspriteAlgoJS'
 import webglAlgorithm from './utils/RotspriteAlgoWebGL'
 
 function App() {
   const [imageUrl, setImageUrl] = useState<string>()
   const [fileName, setFileName] = useState<string>()
-  const [errorMessages, setErrorMessages] = useState<string[]>([])
+  // const [errorMessages, setErrorMessages] = useState<string[]>([])
 
   return (
     <div>
@@ -26,7 +26,7 @@ function App() {
               type="file"
               onChange={e => {
                 if (e.target.files && e.target.files.length > 0) {
-                  setErrorMessages([])
+                  // setErrorMessages([])
                   setImageUrl(URL.createObjectURL(e.target.files[0]))
                   setFileName(e.target.files[0].name)
                 }
@@ -34,18 +34,14 @@ function App() {
             />
           </div>
         </form>
-        <div>
-          {errorMessages?.map(errorMessage => (
-            <div className="error-message">⚠ {errorMessage}</div>
-          ))}
-        </div>
         <div className="tools">
           <RotspriteTool
             title="Canvas"
             imageUrl={imageUrl}
             fileName={fileName}
             errorHandler={errorMessage =>
-              setErrorMessages(s => [...s, errorMessage])
+              // setErrorMessages(s => [...s, errorMessage])
+              console.log('handling an error')
             }
             algorithmFunc={jsAlgorithm}
           />
@@ -54,7 +50,8 @@ function App() {
             imageUrl={imageUrl}
             fileName={fileName}
             errorHandler={errorMessage =>
-              setErrorMessages(s => [...s, errorMessage])
+              // setErrorMessages(s => [...s, errorMessage])
+              console.log('handling an error')
             }
             algorithmFunc={webglAlgorithm}
           />

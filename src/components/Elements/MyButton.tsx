@@ -6,9 +6,7 @@ interface MyButtonProps {
   children: ReactNode
 }
 
-export const MyButton: React.FunctionComponent<
-  React.ButtonHTMLAttributes<HTMLButtonElement> & MyButtonProps
-> = ({children, onClick, disabled}) => {
+export const MyButton = ({children, onClick, disabled}: MyButtonProps) => {
   return (
     <button className="btn-icn" onClick={onClick} disabled={disabled}>
       <div className="icon">

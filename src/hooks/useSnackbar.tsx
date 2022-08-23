@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react'
 
-export function useSnackbar() {
+export const useSnackbar = () => {
   const [isActive, setIsActive] = useState(false)
   const [message, setMessage] = useState<string | undefined>()
 

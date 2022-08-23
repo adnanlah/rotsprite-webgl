@@ -18,13 +18,13 @@ interface RotspriteToolProps {
   ) => Promise<string>
 }
 
-export function RotspriteTool({
+export const RotspriteTool = ({
   imageUrl,
   fileName,
   title,
   errorHandler,
   algorithmFunc,
-}: RotspriteToolProps) {
+}: RotspriteToolProps) => {
   const canvasRef = createRef<HTMLCanvasElement>()
   const linkRef = createRef<HTMLAnchorElement>()
   const [processing, setProcessing] = useState<Boolean>(false)

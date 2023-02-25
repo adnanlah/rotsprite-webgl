@@ -98,6 +98,7 @@ export const RotspriteTool = ({
               type="range"
               min="0"
               max="360"
+              step="1"
             />
           </div>
         </div>
